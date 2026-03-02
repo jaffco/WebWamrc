@@ -1,0 +1,19 @@
+{
+  "name": "webwamrc-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-side AOT compiler using wamrc compiled to WebAssembly",
+  "scripts": {
+    "build": "webpack --config webpack.config.cjs",
+    "dev": "webpack serve --config webpack.config.cjs --open",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "html-webpack-plugin": "^5.6.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
