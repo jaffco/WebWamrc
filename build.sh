@@ -35,8 +35,18 @@ else
     echo "==> Step 2/3: Build wamrc"
     "$SRC/build-wamrc.sh" "$BUILD"
 
-    # Link build outputs into demo/ so webpack can find them
-    ln -sfn "$BUILD/wamrc" "$SRC/demo/wamrc"
+    # Copy distributable artifacts to prebuilt/ and update symlinks
+    echo "==> Updating prebuilt/ …"
+    mkdir -p "$SRC/prebuilt"
+    cp "$BUILD/wamrc/wamrc.js-2.4.3"    "$SRC/prebuilt/"
+    cp "$BUILD/wamrc/wamrc.js-2.4.wasm" "$SRC/prebuilt/"
+    cp "$BUILD/wamrc/wamrc.wasm.br"     "$SRC/prebuilt/"
+    ln -sf wamrc.js-2.4.3    "$SRC/prebuilt/wamrc.mjs"
+    ln -sf wamrc.js-2.4.wasm "$SRC/prebuilt/wamrc.wasm"
+    echo "    Artifacts copied to prebuilt/"
+
+    # Link prebuilt/ into demo/ so webpack can find them
+    ln -sfn "$SRC/prebuilt" "$SRC/demo/wamrc"
 
     echo "==> Step 3/3: Build JS demo"
     cd "$SRC/demo"

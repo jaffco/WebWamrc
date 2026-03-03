@@ -99,6 +99,8 @@ export default class EmProcess extends AsyncInitializable(Process) {
         this.running = true;
         if ((typeof args) === "string") args = args.split(/ +/g);
 
+        console.debug("[EmProcess.exec] args:", args);
+
         // Clang's driver uses global state, and this might not be the first time we run the module.
         // Reinitialize the memory to its initial state to reset the global state.
         // TODO: Is this safe? Is this missing some other source of state? wasm globals? JS?
@@ -133,7 +135,25 @@ export default class EmProcess extends AsyncInitializable(Process) {
         try {
             if (opts.cwd) this.cwd = opts.cwd;
             returncode = this._module._main(argc, argv);
+            console.debug("[EmProcess.exec] _main returned:", returncode);
         } catch (e) {
+            // Classify and fully log the exception before discarding it.
+            const etype = e?.constructor?.name ?? typeof e;
+            const emsg  = e instanceof Error ? e.message : String(e);
+            const estack = e instanceof Error ? (e.stack ?? "(no stack)") : "(not an Error)";
+
+            console.error(
+                `[EmProcess.exec] exception during _main\n` +
+                `  type:    ${etype}\n` +
+                `  message: ${emsg}\n` +
+                `  stack:\n${estack}`
+            );
+
+            // Append the full exception detail to stderr so it surfaces in the UI.
+            const detail = `[EXCEPTION] ${etype}: ${emsg}\n${estack}`;
+            stderr.push(detail);
+            this.onprintErr(detail);
+
             if (typeof e === "number") {
                 returncode = -84;
             } else if ("status" in e) {
@@ -146,6 +166,12 @@ export default class EmProcess extends AsyncInitializable(Process) {
         }
 
         this.running = false;
+
+        console.debug(
+            `[EmProcess.exec] done — returncode: ${returncode}\n` +
+            `  stdout: ${stdout.join("\\n").slice(0, 300)}\n` +
+            `  stderr: ${stderr.join("\\n").slice(0, 300)}`
+        );
 
         return {
             returncode,

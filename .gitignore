@@ -1,0 +1,6 @@
+.DS_Store
+build/
+demo/dist/
+demo/node_modules/
+demo/package-lock.json
+*.aot

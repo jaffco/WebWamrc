@@ -102,6 +102,7 @@ compileBtn.addEventListener("click", async () => {
         // Always pass --size-level=3 for bare-metal; add --cpu= when known
         const extraArgs = [
             "--size-level=3",
+            "--enable-builtin-intrinsics=i64.common,fp.common",
             ...(cpu ? [`--cpu=${cpu}`] : []),
         ];
         const wasmBytes = await file.arrayBuffer();
