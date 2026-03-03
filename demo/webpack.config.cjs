@@ -62,15 +62,22 @@ module.exports = {
             inject: false,
         }),
 
-        // Copy wamrc Emscripten outputs straight to dist/ without bundling.
+        // Copy only the two runtime files that the browser needs.
         // Webpack's own bundler would mangle Emscripten's glue code, so we
-        // copy the files verbatim and let the browser load them natively.
+        // copy wamrc.mjs verbatim and let the browser load it natively.
+        // Listing files explicitly prevents cmake build artifacts (.a, .ninja, …)
+        // from ending up in dist/.
         new CopyPlugin({
             patterns: [
                 {
-                    from: WAMRC_DIR,
-                    to: path.join(DIST, "wamrc"),
-                    noErrorOnMissing: true,   // fine during development before the build
+                    from: path.join(WAMRC_DIR, "wamrc.mjs"),
+                    to: path.join(DIST, "wamrc", "wamrc.mjs"),
+                    noErrorOnMissing: true,
+                },
+                {
+                    from: path.join(WAMRC_DIR, "wamrc.wasm"),
+                    to: path.join(DIST, "wamrc", "wamrc.wasm"),
+                    noErrorOnMissing: true,
                 },
             ],
         }),

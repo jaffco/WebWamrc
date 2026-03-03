@@ -33,7 +33,7 @@ export default class EmProcess extends AsyncInitializable(Process) {
                 },
             }
         };
-        this._module = await new Module({
+        this._module = await Module({
             ...opts,
             ...fsroot,
             noInitialRun: true,
@@ -76,12 +76,14 @@ export default class EmProcess extends AsyncInitializable(Process) {
                 return ERRNO_CODES[this.errno];
             }
         }
-        Object.keys(FS.genericErrors).forEach((code) => {
-            code = parseInt(code);
-            Object.defineProperty(FS.genericErrors, code, {
-                get: () => new FS.ErrnoError(code)
+        if (FS.genericErrors) {
+            Object.keys(FS.genericErrors).forEach((code) => {
+                code = parseInt(code);
+                Object.defineProperty(FS.genericErrors, code, {
+                    get: () => new FS.ErrnoError(code)
+                });
             });
-        });
+        }
     }
 
     get FS() {
