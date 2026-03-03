@@ -28,6 +28,7 @@ if [ "$JOBS" = "0" ] || [ -z "$JOBS" ]; then
 fi
 echo "==> Using $JOBS parallel jobs"
 
+mkdir -p "$BUILD"
 BUILD="$(realpath "$BUILD")"
 LLVM_BUILD="$BUILD/llvm"
 

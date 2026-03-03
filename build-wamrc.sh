@@ -12,6 +12,7 @@ set -euo pipefail
 SRC="$(cd "$(dirname "$0")" && pwd)"
 
 BUILD="${1:-$(pwd)/build}"
+mkdir -p "$BUILD"
 BUILD="$(realpath "$BUILD")"
 
 JOBS="${JOBS:-0}"
@@ -54,7 +55,6 @@ if [ ! -d "$WAMRC_BUILD" ]; then
         -s EXPORTED_RUNTIME_METHODS=FS,PROXYFS,ERRNO_CODES,allocateUTF8 \
         -s MODULARIZE=1 \
         -s EXPORT_ES6=1 \
-        -s USE_ES6_IMPORT_META=0 \
         -s ENVIRONMENT=worker \
         -s NODEJS_CATCH_EXIT=0 \
         -lproxyfs.js \
@@ -66,7 +66,7 @@ if [ ! -d "$WAMRC_BUILD" ]; then
         -DWAMR_BUILD_PLATFORM=linux \
         -DWAMR_BUILD_TARGET=X86_64 \
         -DWAMR_BUILD_DEBUG_AOT=0 \
-        -DWAMR_BUILD_LIBC_WASI=1 \
+        -DWAMR_BUILD_LIBC_WASI=0 \
         -DWAMR_BUILD_WITH_CUSTOM_LLVM=1 \
         -DLLVM_DIR="$LLVM_BUILD/lib/cmake/llvm" \
         $CCACHE_CMAKE
@@ -82,13 +82,23 @@ if [ -f "$WAMRC_JS" ] && [ ! -f "$WAMRC_MJS" ]; then
     mv "$WAMRC_JS" "$WAMRC_MJS"
 fi
 
+# Emscripten names the wasm after the versioned output (e.g. wamrc.js-2.4.wasm).
+# Create a canonical wamrc.wasm symlink so the demo and brotli step find it.
+WAMRC_WASM="$WAMRC_BUILD/wamrc.wasm"
+if [ ! -f "$WAMRC_WASM" ]; then
+    WAMRC_WASM_VERSIONED=$(ls "$WAMRC_BUILD"/*.wasm 2>/dev/null | grep -v '\.br$' | head -1)
+    if [ -n "$WAMRC_WASM_VERSIONED" ]; then
+        ln -sf "$(basename "$WAMRC_WASM_VERSIONED")" "$WAMRC_WASM"
+    fi
+fi
+
 echo "==> wamrc Wasm build complete."
 echo "    JS glue:  $WAMRC_BUILD/wamrc.mjs"
-echo "    Wasm:     $WAMRC_BUILD/wamrc.wasm"
+echo "    Wasm:     $WAMRC_WASM"
 
 # Optional: compress with brotli for efficient serving
-if command -v brotli &>/dev/null; then
+if command -v brotli &>/dev/null && [ -f "$WAMRC_WASM" ]; then
     echo "==> Compressing wamrc.wasm with brotli …"
-    brotli --best --force "$WAMRC_BUILD/wamrc.wasm"
-    echo "    Compressed: $WAMRC_BUILD/wamrc.wasm.br"
+    brotli --best --force "$WAMRC_WASM"
+    echo "    Compressed: $WAMRC_WASM.br"
 fi

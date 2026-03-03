@@ -1,6 +1,7 @@
 [submodule "wasm-micro-runtime"]
 	path = wasm-micro-runtime
 	url = https://github.com/jaffco/wasm-micro-runtime
+	branch = web
 [submodule "emception"]
 	path = emception
 	url = https://github.com/jprendes/emception
